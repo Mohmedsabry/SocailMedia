@@ -1,0 +1,12 @@
+package com.example.socailmedia.data.remote.dto
+
+data class UserDto(
+    val name: String,
+    val email: String,
+    val password: String,
+    val age: Float,
+    val phoneNumber: String,
+    val gender: String,
+    val dateOfBirth: String,
+    val dateOfCreate: String,
+)
