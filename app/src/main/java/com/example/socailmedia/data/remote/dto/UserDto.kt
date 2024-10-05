@@ -1,5 +1,8 @@
 package com.example.socailmedia.data.remote.dto
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class UserDto(
     val name: String,
     val email: String,

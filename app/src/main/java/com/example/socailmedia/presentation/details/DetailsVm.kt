@@ -21,10 +21,19 @@ import javax.inject.Inject
 @HiltViewModel
 class DetailsVm @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val repository: Repository,
-    private val authRepository: AuthRepository
+    private var repository: Repository,
+    private var authRepository: AuthRepository
 ) : ViewModel() {
     var state by mutableStateOf(DetailsState())
+        private set
+
+    fun setRepository(repository: Repository) {
+        this.repository = repository
+    }
+
+    fun setAuthRepository(repository: AuthRepository) {
+        this.authRepository = repository
+    }
 
     init {
         val user = savedStateHandle["user"] ?: ""
@@ -48,8 +57,7 @@ class DetailsVm @Inject constructor(
                     is Result.Success -> {
                         println(res.data)
                         state.copy(
-                            baseUser = res.data,
-                            error = null
+                            baseUser = res.data, error = null
                         )
                     }
                 }
@@ -69,8 +77,7 @@ class DetailsVm @Inject constructor(
                     is Result.Success -> {
                         println("11")
                         state.copy(
-                            error = null,
-                            post = res.data
+                            error = null, post = res.data
                         )
                     }
                 }
@@ -88,8 +95,7 @@ class DetailsVm @Inject constructor(
                     is Result.Success -> {
                         println("22")
                         state.copy(
-                            error = null,
-                            comments = res.data
+                            error = null, comments = res.data
                         )
                     }
                 }
@@ -103,19 +109,17 @@ class DetailsVm @Inject constructor(
         when (events) {
             is DetailsEvents.OnLiked -> {
                 viewModelScope.launch {
-                    when (val res = repository.likePost(
-                        state.post.postId,
-                        events.isLiked,
-                        state.post.isShared
+                    state = when (val res = repository.likePost(
+                        state.post.postId, events.isLiked, state.post.isShared
                     )) {
                         is Result.Failure -> {
-                            state = state.copy(
+                            state.copy(
                                 error = res.error.name
                             )
                         }
 
                         is Result.Success -> {
-                            state = state.copy(
+                            state.copy(
                                 error = null
                             )
                         }
@@ -129,26 +133,20 @@ class DetailsVm @Inject constructor(
 
             DetailsEvents.OnSendComment -> {
                 state = state.copy(
-                    comments = state.comments +
-                            Comment(
-                                state.baseUser,
-                                state.comment
-                            )
+                    comments = state.comments + Comment(
+                        state.baseUser, state.comment
+                    )
                 )
                 viewModelScope.launch {
                     when (val res = repository.addComment(
-                        state.post.postId,
-                        state.comment,
-                        state.post.isShared
+                        state.post.postId, state.comment, state.post.isShared
                     )) {
                         is Result.Failure -> {
                             state = state.copy(
                                 error = res.error.name,
-                                comments = state.comments -
-                                        Comment(
-                                            state.baseUser,
-                                            state.comment
-                                        )
+                                comments = state.comments - Comment(
+                                    state.baseUser, state.comment
+                                )
                             )
                         }
 
@@ -212,6 +210,7 @@ class DetailsVm @Inject constructor(
             }
         }
     }
+
     private suspend fun getUserByEmail(email: String) {
         println("profile User")
         state = when (val res = authRepository.getUserByEmail(email)) {
@@ -224,8 +223,7 @@ class DetailsVm @Inject constructor(
 
             is Result.Success -> {
                 state.copy(
-                    user = res.data,
-                    error = null
+                    user = res.data, error = null
                 )
             }
         }

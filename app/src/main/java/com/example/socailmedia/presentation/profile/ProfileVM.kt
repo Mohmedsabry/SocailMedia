@@ -1,5 +1,6 @@
 package com.example.socailmedia.presentation.profile
 
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -19,16 +20,43 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileVM @Inject constructor(
-    private val repository: Repository,
+    private var repository: Repository,
     private val savedStateHandle: SavedStateHandle,
-    private val authRepository: AuthRepository
+    private var authRepository: AuthRepository
 ) : ViewModel() {
     var state by mutableStateOf(ProfileState())
+        private set
+
+    private val _url = MutableStateFlow<Uri?>(null)
+    val url: StateFlow<Uri?> = _url
+
+    fun uploadImg(url: Uri) {
+        viewModelScope.launch {
+            _url.emit(url)
+            val file = getFileFromUri(url)
+            repository.uploadImg(file)
+        }
+    }
+
+    private fun getFileFromUri(url: Uri): File {
+        return repository.getFileFromContent(url)
+    }
+
+    fun setRepository(repository: Repository) {
+        this.repository = repository
+    }
+
+    fun setAuthRepository(repository: AuthRepository) {
+        this.authRepository = repository
+    }
 
     init {
         val email = savedStateHandle["email"] ?: ""
@@ -111,7 +139,7 @@ class ProfileVM @Inject constructor(
         }
     }
 
-   private suspend fun getUserByEmail(email: String) {
+    private suspend fun getUserByEmail(email: String) {
         println("profile User")
         state = when (val res = authRepository.getUserByEmail(email)) {
             is Result.Failure -> {

@@ -17,10 +17,20 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeVM @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val repository: Repository
+    private var authRepository: AuthRepository,
+    private var repository: Repository
 ) : ViewModel() {
     var state by mutableStateOf(HomeState())
+        private set
+
+    fun setRepository(repository: Repository) {
+        this.repository = repository
+    }
+
+    fun setAuthRepository(repository: AuthRepository) {
+        this.authRepository = repository
+    }
+
     fun event(events: HomeEvents) {
         when (events) {
             is HomeEvents.GetUserFromNav -> {

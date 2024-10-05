@@ -1,11 +1,13 @@
 package com.example.socailmedia.domain.repositories
 
+import android.net.Uri
 import com.example.socailmedia.domain.model.Comment
 import com.example.socailmedia.domain.model.Friend
 import com.example.socailmedia.domain.model.FriendShip
 import com.example.socailmedia.domain.model.Post
 import com.example.socailmedia.domain.util.Result
 import com.example.socailmedia.util.GlobalError
+import java.io.File
 
 interface Repository {
     suspend fun getAllPosts(
@@ -94,10 +96,18 @@ interface Repository {
         user1: String,
         close: Boolean
     ): Result<Unit, GlobalError>
+
     suspend fun addFriend(
         user1: String,
     ): Result<Unit, GlobalError>
+
     suspend fun friendShipState(
         email: String
-    ):Result<FriendShip,GlobalError>
+    ): Result<FriendShip, GlobalError>
+
+    suspend fun uploadImg(
+        file: File
+    ): Result<Unit, GlobalError>
+
+    fun getFileFromContent(uri: Uri): File
 }

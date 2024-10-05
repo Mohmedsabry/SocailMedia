@@ -16,10 +16,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FriendsVM @Inject constructor(
-    private val repository: Repository,
+    private var repository: Repository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     var state by mutableStateOf(FriendsState())
+        private set
+
+    fun setRepository(repository: Repository) {
+        this.repository = repository
+    }
 
     init {
         val email = savedStateHandle["email"] ?: ""

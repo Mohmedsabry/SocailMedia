@@ -14,9 +14,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginVM @Inject constructor(
-    private val authRepository: AuthRepository
+    private var authRepository: AuthRepository
 ) : ViewModel() {
     var state by mutableStateOf(LoginState())
+        private set
+
+    fun setRepository(repository: AuthRepository) {
+        this.authRepository = repository
+    }
+
     fun event(event: LoginEvent) {
         when (event) {
             LoginEvent.OnLoginClicked -> {

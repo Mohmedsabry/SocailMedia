@@ -1,6 +1,8 @@
 package com.example.socailmedia.data.repositories
 
 import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
 import com.example.socailmedia.data.mapper.toComment
 import com.example.socailmedia.data.mapper.toFriend
 import com.example.socailmedia.data.mapper.toPost
@@ -20,7 +22,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.HttpException
+import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 
 class RepositoryImpl @Inject constructor(
@@ -28,6 +34,39 @@ class RepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val friendsApi: FriendsApi
 ) : Repository {
+    override fun getFileFromContent(uri: Uri): File {
+        val cursor = context.contentResolver.query(uri, null, null, null)
+        cursor?.moveToFirst()
+        val index = cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        val fileName = index?.let { cursor.getString(it) }
+        val file = File(context.cacheDir,fileName!!)
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val outputStream = FileOutputStream(file)
+        inputStream?.copyTo(outputStream)
+        cursor.close()
+        return file
+    }
+
+    override suspend fun uploadImg(
+        file: File
+    ): Result<Unit, GlobalError> {
+        return withContext(Dispatchers.IO) {
+            try {
+                postApi.uploadImg(
+                    MultipartBody.Part.createFormData("fileName", context.getEmail()),
+                    MultipartBody.Part.createFormData("file", file.name, file.asRequestBody()),
+                )
+                Result.Success(Unit)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Result.Failure(GlobalError.UN_KNOWN)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Result.Failure(GlobalError.UN_KNOWN)
+            }
+        }
+    }
+
     override suspend fun getAllPosts():
             Result<List<Post>, GlobalError> {
         return withContext(Dispatchers.IO) {

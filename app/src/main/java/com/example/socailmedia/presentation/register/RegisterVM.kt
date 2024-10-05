@@ -14,7 +14,6 @@ import com.example.socailmedia.util.EmailError
 import com.example.socailmedia.util.PasswordError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,7 +22,7 @@ class RegisterVM @Inject constructor(
     private val userValidation: UserValidation
 ) : ViewModel() {
     var state by mutableStateOf(RegisterState())
-
+        private set
     init {
         viewModelScope.launch {
             state = when (val res = authRepository.getAllEmailsInSystem()) {
@@ -91,8 +90,7 @@ class RegisterVM @Inject constructor(
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     if (state.gender.isEmpty() || state.gender.isBlank()) state = state.copy(
                         error = "please select your gender",
                         isLoading = false

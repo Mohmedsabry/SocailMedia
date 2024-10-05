@@ -30,3 +30,7 @@ enum class GlobalError:Error{
     BAD_REQUEST,
     INTERNAL_SERVER_ERROR
 }
+enum class ChatError:Error{
+    UserALLREADYEXIST,
+    UNKNOWN,
+}

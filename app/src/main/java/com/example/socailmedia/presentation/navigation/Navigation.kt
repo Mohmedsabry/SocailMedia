@@ -7,6 +7,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
@@ -15,7 +16,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.example.socailmedia.MainActivity.ChatScreen
 import com.example.socailmedia.domain.model.User
+import com.example.socailmedia.presentation.chat.ChatScreen
+import com.example.socailmedia.presentation.chat.ChatVm
 import com.example.socailmedia.presentation.compenent.BottomShow
 import com.example.socailmedia.presentation.compenent.ShareDialog
 import com.example.socailmedia.presentation.details.DetailsEvents
@@ -257,6 +261,7 @@ fun NavigationController(navController: NavHostController) {
         composable<Navigation.Profile>(typeMap = mapOf(typeOf<NavUser>() to userNavInfo)) {
             val profileVm = hiltViewModel<ProfileVM>()
             val state = profileVm.state
+            val img = profileVm.url.collectAsState()
             val sheetState = rememberModalBottomSheetState(
                 skipPartiallyExpanded = true
             )
@@ -307,7 +312,7 @@ fun NavigationController(navController: NavHostController) {
                 removeFriendClick = { profileVm.event(ProfileEvents.OnRemoveFriend(it)) },
                 onPostClicked = {
                     // navigation
-                    when(state.hisAccount){
+                    when (state.hisAccount) {
                         true -> {
                             navController.navigate(
                                 Navigation.Details(
@@ -317,6 +322,7 @@ fun NavigationController(navController: NavHostController) {
                                 )
                             )
                         }
+
                         false -> {
                             navController.navigate(
                                 Navigation.Details(
@@ -336,15 +342,30 @@ fun NavigationController(navController: NavHostController) {
                 },
                 onShareClicked = {
                     profileVm.event(ProfileEvents.OnShareClicked(it))
-                }, onProfileClicked = {
+                },
+                onProfileClicked = {
                     navController.navigate(
                         Navigation.Profile(
                             email = it.editor.email,
                             hisAccount = false,
                         )
                     )
+                },
+                onUpdatingProfilePic = {
+                    profileVm.uploadImg(it)
+                },
+                onNavigateIntoChat = {
+                    navController.navigate(
+                        ChatScreen(
+                            sender = state.baseUser.email,
+                            receiver = state.user.email
+                        )
+                    ) {
+                        launchSingleTop = true
+                    }
                 }
             )
+            println(img)
         }
         composable<Navigation.Friends>(typeMap = mapOf(typeOf<NavUser>() to userNavInfo)) {
             val vm = hiltViewModel<FriendsVM>()
@@ -390,6 +411,20 @@ fun NavigationController(navController: NavHostController) {
                     }
                 }
             }
+        }
+        composable<ChatScreen> {
+            val vm = hiltViewModel<ChatVm>()
+            val state = vm.state
+            ChatScreen(
+                chatState = state,
+                onAction = vm::event,
+                connect = {
+                    vm.connectToServer()
+                },
+                disConnect = {
+                    vm.disconnect()
+                }
+            )
         }
     }
 }

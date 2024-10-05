@@ -4,11 +4,16 @@ import com.example.socailmedia.data.remote.dto.CommentDto
 import com.example.socailmedia.data.remote.dto.PostDto
 import com.example.socailmedia.data.remote.dto.PostUpload
 import com.example.socailmedia.data.remote.dto.SharePostDto
+import kotlinx.coroutines.Deferred
+import okhttp3.MultipartBody
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -95,7 +100,15 @@ interface PostApi {
         @Query("isShared") isShared: Boolean
     )
 
+    @Multipart
+    @POST("/img")
+    fun uploadImg(
+        @Part name: MultipartBody.Part,
+        @Part img: MultipartBody.Part
+    ): Deferred<Response<Unit>>
+
     companion object {
-        const val API_URL = "http://10.0.2.2:8080/"
+        //        const val API_URL = "http://10.0.2.2:8080/"
+        const val API_URL = "http://192.168.1.4:8080/"
     }
 }
